@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.zerock.d01.dto.BoardDTO;
+import org.zerock.d01.dto.BoardListReplyCountDTO;
 import org.zerock.d01.dto.PageRequestDTO;
 import org.zerock.d01.dto.PageResponseDTO;
 import org.zerock.d01.service.BoardService;
@@ -27,9 +28,10 @@ public class BoardController {
     @Operation(summary = "list")
     @GetMapping("/list")
     public void list(PageRequestDTO pageRequestDTO, Model model){
-        PageResponseDTO<BoardDTO> list = boardService.list(pageRequestDTO);
-        log.info(list);
-        model.addAttribute("responseDTO",list);
+      /*  PageResponseDTO<BoardDTO> list = boardService.list(pageRequestDTO);
+        log.info(list);*/
+        PageResponseDTO<BoardListReplyCountDTO> responseDTO = boardService.listWithReplyCount(pageRequestDTO);
+        model.addAttribute("responseDTO",responseDTO);
 
     }
     @Operation(summary = "register", method = "GetMapping")

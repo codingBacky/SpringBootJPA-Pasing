@@ -2,6 +2,7 @@ package org.zerock.d01.service;
 
 import org.zerock.d01.domain.Board;
 import org.zerock.d01.dto.BoardDTO;
+import org.zerock.d01.dto.BoardListReplyCountDTO;
 import org.zerock.d01.dto.PageRequestDTO;
 import org.zerock.d01.dto.PageResponseDTO;
 
@@ -11,6 +12,7 @@ public interface BoardService {
     void modify(BoardDTO dto);
     void remove(Long bno);
     PageResponseDTO<BoardDTO> list(PageRequestDTO pageRequestDTO);
+    PageResponseDTO<BoardListReplyCountDTO> listWithReplyCount(PageRequestDTO pageRequestDTO);
 
     default Board boardDTOToEntity(BoardDTO dto){
         Board board = Board.builder()

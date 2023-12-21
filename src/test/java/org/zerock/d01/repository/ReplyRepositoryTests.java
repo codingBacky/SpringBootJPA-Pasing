@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.zerock.d01.domain.Board;
 import org.zerock.d01.domain.Reply;
+import org.zerock.d01.dto.BoardListReplyCountDTO;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReplyRepositoryTests {
     @Autowired
     private ReplyRepository replyRepository;
+    @Autowired
+    private BoardRepository boardRepository;
     @Test
     public void testInsert(){
         Board board = Board.builder().bno(101L).build();
@@ -40,6 +43,22 @@ class ReplyRepositoryTests {
         Pageable pageable = PageRequest.of(0,10, Sort.by("rno").descending());
         Page<Reply> result = replyRepository.listOfBoard(bno, pageable);
         result.getContent().forEach(reply -> log.info(reply));
+    }
+    @Test
+    public void testSearchReplyCount(){
+        String[] types = {"t", "w", "c"};
+        String keywoard = "1";
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("bno").descending());
+        Page<BoardListReplyCountDTO> result = boardRepository.searchWithReplyCount(types, keywoard, pageable);
+
+        log.info(result.getTotalElements());
+        log.info(result.getTotalPages());
+        log.info(result.getSize());
+        log.info(result.getNumber());
+        log.info("Next : " + result.hasNext());
+        log.info("Next : " + result.hasPrevious());
+
+        result.getContent().forEach(log::info);
     }
 }
 
