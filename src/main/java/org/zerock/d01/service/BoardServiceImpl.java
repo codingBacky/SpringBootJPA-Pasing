@@ -7,10 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.zerock.d01.domain.Board;
-import org.zerock.d01.dto.BoardDTO;
-import org.zerock.d01.dto.BoardListReplyCountDTO;
-import org.zerock.d01.dto.PageRequestDTO;
-import org.zerock.d01.dto.PageResponseDTO;
+import org.zerock.d01.dto.*;
 import org.zerock.d01.repository.BoardRepository;
 
 import java.util.List;
@@ -32,7 +29,8 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     public Long register(BoardDTO boardDTO) {
-        Board board = modelMapper.map(boardDTO, Board.class);
+//        Board board = modelMapper.map(boardDTO, Board.class);
+        Board board = dtoToEntity(boardDTO);
         log.info(board);
 
         Long bno = boardRepository.save(board).getBno();
@@ -46,15 +44,24 @@ public class BoardServiceImpl implements BoardService {
     @Override
     public BoardDTO readOne(Long bno) {
        // Optional<Board> board = boardRepository.findById(bno);
-        Board board = boardRepository.findById(bno).orElseThrow();
+        Board board = boardRepository.findByIdWithImages(bno).orElseThrow();
+        //Board board = boardRepository.findById(bno).orElseThrow();
 
-        return modelMapper.map(board, BoardDTO.class);
+        return entityToDTO(board);
     }
 
     @Override
     public void modify(BoardDTO dto) {
-        Board board = boardRepository.findById(dto.getBno()).orElseThrow();
+        Board board = boardRepository.findByIdWithImages(dto.getBno()).orElseThrow();
         board.change(dto.getTitle(), dto.getContent());
+        board.clearImages();
+
+        if(dto.getFileNames() != null){
+            for(String fileName : dto.getFileNames()){
+                String[] arr = fileName.split("_");
+                board.addImages(arr[0], arr[1]);
+            }
+        }
         boardRepository.save(board);
     }
 
@@ -92,6 +99,12 @@ public class BoardServiceImpl implements BoardService {
                 .dtoList(result.getContent())
                 .total((int) result.getTotalElements())
                 .build();
+    }
+
+    @Override
+    public PageResponseDTO<BoardListAllDTO> listWithAll(PageRequestDTO pageRequestDTO) {
+
+        return null;
     }
 
 

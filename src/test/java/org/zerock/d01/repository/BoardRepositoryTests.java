@@ -1,5 +1,6 @@
 package org.zerock.d01.repository;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 import org.assertj.core.api.OptionalIntAssert;
 import org.junit.jupiter.api.Test;
@@ -9,10 +10,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.annotation.Commit;
 import org.zerock.d01.domain.Board;
+import org.zerock.d01.dto.BoardListAllDTO;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
@@ -21,6 +26,9 @@ class BoardRepositoryTests {
 
     @Autowired
     private BoardRepository boardRepository;
+
+    @Autowired
+    private ReplyRepository replyRepository;
 
     @Test
     public void testInsert(){
@@ -127,5 +135,73 @@ class BoardRepositoryTests {
         log.info(result.getNumber());
         log.info(result.hasNext());
         log.info(result.hasPrevious());
+    }
+    @Test
+    public void testInsertWithImages(){
+        Board board = Board.builder()
+                .title("Image Test")
+                .content("첨부파일 테스트")
+                .writer("tester")
+                .build();
+        for(int i = 0; i < 3; i++){
+            board.addImages(UUID.randomUUID().toString(), "file" + i + ".jpg");
+        }
+        boardRepository.save(board);
+    }
+    @Test
+    public void testReadWithImage(){
+        Board board = boardRepository.findByIdWithImages(1L).orElseThrow();
+
+        log.info(board);
+        log.info(board.getImageSet());
+    }
+
+    @Transactional
+    @Commit
+    @Test
+    public void testModifyImages() {
+        Board board = boardRepository.findByIdWithImages(1L).orElseThrow();
+        board.clearImages();
+
+        for(int i = 0; i < 2; i++) {
+            board.addImages(UUID.randomUUID().toString(), "updateFile" + i + ".jpg");
+        }
+        boardRepository.save(board);
+    }
+    @Test
+    @Transactional
+    @Commit
+    public void testRemoveAll(){
+        Long bno = 1L;
+
+        replyRepository.deleteByBoard_Bno(bno);
+
+        boardRepository.deleteById(bno);
+    }
+    @Test
+    public void testInsertAll(){
+        IntStream.rangeClosed(1,100).forEach(i -> {Board board = Board.builder()
+                .title("Title" + i)
+                .content("content" + i)
+                .writer("writer" + i)
+                .build();
+        for (int j = 0; j < 3; j++){
+            if((i % 5) == 0){
+                continue;
+            }
+            board.addImages(UUID.randomUUID().toString(), i + "file" + j + ".jpg");
+        }
+        boardRepository.save(board);
+        });
+    }
+
+    @Test
+    @Transactional
+    public void testSearchImageReplyCount(){
+        Pageable pageable = PageRequest.of(0,10, Sort.by("bno").descending());
+        Page<BoardListAllDTO> result = boardRepository.searchWithAll(null,null, pageable);
+        log.info(result.getTotalElements());
+
+        result.getContent().forEach(log::info);
     }
 }

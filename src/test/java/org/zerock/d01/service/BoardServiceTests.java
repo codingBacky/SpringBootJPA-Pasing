@@ -9,6 +9,10 @@ import org.zerock.d01.dto.BoardDTO;
 import org.zerock.d01.dto.PageRequestDTO;
 import org.zerock.d01.dto.PageResponseDTO;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -36,10 +40,13 @@ class BoardServiceTests {
     @Test
     public void testModify(){
         BoardDTO boardDTO = BoardDTO.builder()
-                .bno(102L)
+                .bno(100L)
                 .title("수정 제목")
                 .content("수정 내용")
                 .build();
+        log.info("모디파이"+boardDTO);
+        //첨부파일 추가
+        boardDTO.setFileNames(Arrays.asList(UUID.randomUUID()+"_zzz.jpg"));
         boardService.modify(boardDTO);
     }
     @Test
@@ -57,4 +64,28 @@ class BoardServiceTests {
         PageResponseDTO<BoardDTO> pageResponseDTO = boardService.list(pageRequestDTO);
         log.info(pageResponseDTO);
     }
+    @Test
+    public void testRegisterWithImages(){
+        BoardDTO boardDTO = BoardDTO.builder()
+                .title("File . . . Sample  title")
+                .content("Sample Content . . .")
+                .writer("user00")
+                .build();
+        boardDTO.setFileNames(
+                Arrays.asList(
+                        UUID.randomUUID().toString() + "_aaa.jpg",
+                        UUID.randomUUID().toString() + "_bbb.jpg",
+                        UUID.randomUUID().toString() + "_ccc.jpg"
+                )
+        );
+        Long bno = boardService.register(boardDTO);
+        log.info(bno);
+    }
+    @Test
+    public void testReadAll(){
+        BoardDTO boardDTO = boardService.readOne(100L);
+        log.info(boardDTO);
+        boardDTO.getFileNames().forEach(log::info);
+    }
+
 }
